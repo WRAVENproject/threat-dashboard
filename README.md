@@ -45,7 +45,7 @@ The frontend is developed using React and provides a user interface for interact
 
 1. Clone the repository:
    ```
-   git clone [<repository-url>](https://github.com/WRAVENproject/threat-dashboard)
+   git clone https://github.com/WRAVENproject/threat-dashboard
    cd wraven-threat-dashboard
    ```
 
