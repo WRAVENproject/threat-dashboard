@@ -35,20 +35,24 @@ cd opencti-deployment
 
 Copy the sample env file:
 
+```bash
 cp .env.sample .env
+```
 
 Edit .env with your secrets and keys:
 
+```bash
 nano .env
+```
 
 ⚠️ Never commit .env — it includes secrets and tokens.
 
 Connector configs are in their respective folders as config.yml.
 
 3. Run the Stack
-
+```bash
 docker-compose up -d
-
+```
 
 ⸻
 
