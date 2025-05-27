@@ -1,90 +1,85 @@
-# WRAVEN Threat Actor Dashboard
+# WRAVEN OpenCTI Threat Intel Platform
 
-## Overview
-The WRAVEN Threat Actor Dashboard is a web application designed to provide insights and analytics on threat actors and their activities. The application is built using a FastAPI/Flask backend and a React frontend, ensuring a modern and responsive user experience.
+This is WRAVEN's self-hosted deployment of [OpenCTI](https://www.opencti.io/), used for graph-based threat intelligence, IOC tracking, and adversary enrichment.
 
-## Project Structure
-The project is organized into two main directories: `backend` and `frontend`.
+## 🔧 Services Deployed
 
-### Backend
-The backend is developed using FastAPI/Flask and is responsible for handling API requests, managing the database, and implementing business logic.
+This stack includes:
 
-- **app**: Contains the main application code.
-  - **api**: Defines the API endpoints for authentication, threats, and dashboard statistics.
-  - **core**: Contains configuration, security, and settings management.
-  - **db**: Manages database models and sessions.
-  - **schemas**: Defines data validation schemas using Pydantic.
-  - **services**: Contains business logic for threat analysis.
-- **tests**: Contains unit tests for the application.
-- **requirements.txt**: Lists the dependencies required for the backend.
-- **Dockerfile**: Contains instructions for building the backend Docker image.
+- **OpenCTI** – main platform
+- **Elasticsearch** – search backend
+- **MinIO** – object storage
+- **Redis** – caching
+- **RabbitMQ** – messaging for connectors
+- **Workers** – background task processors
+- **Connectors**:
+  - ✅ Abuse.ch ThreatFox
+  - ✅ Abuse.ch URLhaus
+  - ✅ CISA KEV (Known Exploited Vulnerabilities)
+  - ✅ MITRE Corporation
+  - ✅ NIST CVE
+  - ✅ NIST CPE
 
-### Frontend
-The frontend is developed using React and provides a user interface for interacting with the backend.
+---
 
-- **public**: Contains static files such as the main HTML file and favicon.
-- **src**: Contains the main application code.
-  - **api**: Handles API interactions.
-  - **components**: Contains reusable UI components.
-  - **pages**: Defines the main pages of the application.
-  - **store**: Manages application state using Redux.
-  - **types**: Defines TypeScript types for the application.
-  - **utils**: Contains utility functions for API interactions and authentication.
-- **package.json**: Lists the dependencies and scripts for the frontend.
-- **tsconfig.json**: Contains TypeScript configuration settings.
-- **Dockerfile**: Contains instructions for building the frontend Docker image.
+## 🚀 Quick Start
 
-## Getting Started
+### 1. Clone the Repo
 
-### Prerequisites
-- Python 3.x
-- Node.js and npm
-- Docker (optional, for containerization)
-
-### Installation
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/WRAVENproject/threat-dashboard
-   cd threat-dashboard
-   ```
-
-2. Set up the backend:
-   - Navigate to the `backend` directory.
-   - Install the required Python packages:
-     ```
-     pip install -r requirements.txt
-     ```
-
-3. Set up the frontend:
-   - Navigate to the `frontend` directory.
-   - Install the required Node packages:
-     ```
-     npm install
-     ```
-
-### Running the Application
-
-- To run the backend:
-  ```
-  cd backend
-  python -m app.main
-  ```
-
-- To run the frontend:
-  ```
-  cd frontend
-  npm start
-  ```
-
-### Docker
-To run the application using Docker, you can use the provided `docker-compose.yml` file. Run the following command in the root directory:
-```
-docker-compose up
+```bash
+git clone https://github.com/WRAVENproject/opencti-deployment.git
+cd opencti-deployment
 ```
 
-## Contributing
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
+2. Set Up Environment Variables
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+Copy the sample env file:
+
+cp .env.sample .env
+
+Edit .env with your secrets and keys:
+
+nano .env
+
+⚠️ Never commit .env — it includes secrets and tokens.
+
+Connector configs are in their respective folders as config.yml.
+
+3. Run the Stack
+
+docker-compose up -d
+
+
+⸻
+
+🌐 Public Access
+
+Only the OpenCTI frontend is exposed publicly:
+
+https://dashboard.wraven.org
+
+All other services (connectors, RabbitMQ, Elasticsearch, etc.) are bound to localhost.
+
+⸻
+
+🔒 Security Notes
+	•	Keep .env and connector config.yml files secret
+	•	Use HTTPS via reverse proxy (e.g. Caddy or NGINX)
+	•	Only expose OpenCTI frontend to the internet
+	•	Use firewall or Docker network to isolate internal services
+
+⸻
+
+🧠 WRAVEN Contact
+
+Want to contribute or report an issue?
+	•	Website: wraven.org
+	•	Email: contact@wraven.org
+
+⸻
+
+🐚 Credits
+
+Built by WRAVEN, powered by OpenCTI, fueled by threats.
+
+Let me know if you want this broken into `docs/` or if you want badges at the top for GitHub, Docker, or OpenCTI version status.
