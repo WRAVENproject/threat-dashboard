@@ -100,7 +100,7 @@ services:
       - APP__HEALTH_ACCESS_KEY=${OPENCTI_HEALTHCHECK_ACCESS_KEY}
       - APP__PUBLIC_DASHBOARD_AUTHORIZED_DOMAINS=*
     ports:
-      - "8081:8080"
+      - "0.0.0.0:8081:8080"
     depends_on:
       redis:
         condition: service_healthy
