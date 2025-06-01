@@ -343,10 +343,10 @@ services:
       - URLHAUS_IMPORT_OFFLINE=true
       - URLHAUS_THREATS_FROM_LABELS=true
       - URLHAUS_INTERVAL=2 # In days, must be strictly greater than 1
-      depends_on:
-        opencti:
-          condition: service_healthy
     restart: always
+    depends_on:
+      opencti:
+        condition: service_healthy
   connector-cisa:
     image: opencti/connector-cisa-known-exploited-vulnerabilities:6.6.13
     platform: linux/amd64
