@@ -1,3 +1,4 @@
 *.iml
 .env
 docker-compose.dev.yml
+favicoin.png
