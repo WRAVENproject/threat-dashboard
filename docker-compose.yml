@@ -238,6 +238,8 @@ services:
       - MITRE_ENTERPRISE_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json
       - MITRE_PRE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json
       - MITRE_MOBILE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json
+      - MITRE_CAPEC_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/capec/2.1/stix-capec.json
+      - MITRE_ICS_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/ics-attack/ics-attack.json
     restart: always
     depends_on:
       opencti:
@@ -326,21 +328,21 @@ services:
     restart: always
     depends_on:
       opencti:
-        condition: service_healthy
-  connector-urlhaus:
-    image: opencti/connector-urlhaus:6.6.13
-    platform: linux/amd64
+        condition: service_healthy  
+    connector-urlhaus:
+    image: opencti/connector-urlhaus:6.6.14
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
       - CONNECTOR_ID=${CONNECTOR_URLHAUS_ID}
-      - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_NAME=Abuse.ch URLhaus
-      - CONNECTOR_SCOPE=url
-      - CONNECTOR_LOG_LEVEL=info
+      - CONNECTOR_SCOPE=urlhaus
+      - CONNECTOR_LOG_LEVEL=error
       - URLHAUS_CSV_URL=https://urlhaus.abuse.ch/downloads/csv_recent/
-      - URLHAUS_INTERVAL=1
+      - URLHAUS_DEFAULT_X_OPENCTI_SCORE=80 # Optional: Defaults to 80.
       - URLHAUS_IMPORT_OFFLINE=true
+      - URLHAUS_THREATS_FROM_LABELS=true
+      - URLHAUS_INTERVAL=2 # In days, must be strictly greater than 1
     restart: always
     depends_on:
       opencti:
@@ -364,14 +366,14 @@ services:
     depends_on:
       opencti:
         condition: service_healthy
-  version: "3"
+    version: "3"
   connector-opencti:
     image: opencti/connector-opencti:6.6.18
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
       - CONNECTOR_ID=${CONNECTOR_OPENCTIDATA_ID}
-      - "CONNECTOR_NAME=OpenCTI Datasets"
+      - CONNECTOR_NAME=OpenCTI Datasets
       - CONNECTOR_SCOPE=marking-definition,identity,location
       - CONNECTOR_UPDATE_EXISTING_DATA=true
       - CONNECTOR_RUN_AND_TERMINATE=false
@@ -381,6 +383,19 @@ services:
       - CONFIG_COMPANIES_FILE_URL=https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/companies.json
       - CONFIG_REMOVE_CREATOR=false
       - CONFIG_INTERVAL=1 # In days
+    version: "3"
+  connector-mitre-atlas:
+    image: opencti/connector-mitre-atlas:6.6.14
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - CONNECTOR_ID=${CONNECTOR_MITRE_ID}
+      - CONNECTOR_NAME=MITRE ATLAS
+      - CONNECTOR_SCOPE=identity,attack-pattern,course-of-action,relationship,x-mitre-collection,x-mitre-matrix,x-mitre-tactic
+      - CONNECTOR_RUN_AND_TERMINATE=false
+      - CONNECTOR_LOG_LEVEL=error
+      - MITRE_ATLAS_URL=https://raw.githubusercontent.com/mitre-atlas/atlas-navigator-data/main/dist/stix-atlas.json
+      - MITRE_ATLAS_INTERVAL=2 # In days, must be strictly greater than 1
     restart: always
 volumes:
   esdata:
