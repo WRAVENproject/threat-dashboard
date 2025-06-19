@@ -329,7 +329,7 @@ services:
     depends_on:
       opencti:
         condition: service_healthy  
-    connector-urlhaus:
+  connector-urlhaus:
     image: opencti/connector-urlhaus:6.6.14
     environment:
       - OPENCTI_URL=http://opencti:8080
@@ -366,7 +366,6 @@ services:
     depends_on:
       opencti:
         condition: service_healthy
-    version: "3"
   connector-opencti:
     image: opencti/connector-opencti:6.6.18
     environment:
@@ -383,7 +382,6 @@ services:
       - CONFIG_COMPANIES_FILE_URL=https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/companies.json
       - CONFIG_REMOVE_CREATOR=false
       - CONFIG_INTERVAL=1 # In days
-    version: "3"
   connector-mitre-atlas:
     image: opencti/connector-mitre-atlas:6.6.14
     environment:
