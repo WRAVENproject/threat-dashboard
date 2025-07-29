@@ -11,15 +11,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0
     volumes:
       - esdata:/usr/share/elasticsearch/data
     environment:
-      # Comment-out the line below for a cluster of multiple nodes
       - discovery.type=single-node
-      # Uncomment the line below below for a cluster of multiple nodes
-      # - cluster.name=docker-cluster
       - xpack.ml.enabled=false
       - xpack.security.enabled=false
       - thread_pool.search.queue_size=5000
@@ -38,15 +36,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 50
+
   minio:
-    image: minio/minio:RELEASE.2024-05-28T17-19-04Z # Use "minio/minio:RELEASE.2024-05-28T17-19-04Z-cpuv1" to troubleshoot compatibility issues with CPU
+    image: minio/minio:RELEASE.2024-05-28T17-19-04Z
     volumes:
       - s3data:/data
     ports:
       - "9000:9000"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}    
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data
     restart: always
     healthcheck:
@@ -54,6 +53,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
   rabbitmq:
     image: rabbitmq:4.1-management
     environment:
@@ -71,6 +71,7 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+
   opencti:
     image: opencti/platform:6.7.4
     environment:
@@ -105,10 +106,13 @@ services:
       - "0.0.0.0:8081:8080"
     restart: always
     healthcheck:
-      test:  ["CMD", "wget", "-qO-", "http://opencti:8080/health?health_access_key=${OPENCTI_HEALTHCHECK_ACCESS_KEY}"]
+      test: ["CMD", "wget", "-qO-", "http://opencti:8080/health?health_access_key=${OPENCTI_HEALTHCHECK_ACCESS_KEY}"]
       interval: 10s
       timeout: 5s
       retries: 20
+    networks:
+      - caddy
+
   worker:
     image: opencti/worker:6.7.4
     environment:
@@ -346,3 +350,7 @@ volumes:
   s3data: {}
   redisdata: {}
   amqpdata: {}
+
+networks:
+  caddy:
+    external: true
