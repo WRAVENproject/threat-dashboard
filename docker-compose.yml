@@ -81,7 +81,7 @@ services:
       - backend
 
   opencti:
-    image: opencti/platform:6.7.4
+    image: opencti/platform:6.7.17
     environment:
       - NODE_OPTIONS=--max-old-space-size=8096
       - APP__PORT=8080
