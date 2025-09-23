@@ -23,7 +23,7 @@ services:
       - xpack.ml.enabled=false
       - xpack.security.enabled=false
       - thread_pool.search.queue_size=5000
-      - logger.org.elasticsearch.discovery="ERROR"
+      - logger.org.elasticsearch.discovery="ERROR" 
       - "ES_JAVA_OPTS=-Xms${ELASTIC_MEMORY_SIZE} -Xmx${ELASTIC_MEMORY_SIZE}"
     restart: always
     ulimits:
@@ -234,7 +234,7 @@ services:
       - CONNECTOR_SCOPE=tool,report,malware,identity,campaign,intrusion-set,attack-pattern,course-of-action,x-mitre-data-source,x-mitre-data-component,x-mitre-matrix,x-mitre-tactic,x-mitre-collection
       - CONNECTOR_LOG_LEVEL=info
       - MITRE_ENTERPRISE_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json
-      - MITRE_PRE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json
+      # - MITRE_PRE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json  # Deprecated (merged into Enterprise); kept commented for reference
       - MITRE_MOBILE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json
       - MITRE_CAPEC_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/capec/2.1/stix-capec.json
       - MITRE_ICS_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/ics-attack/ics-attack.json
@@ -376,13 +376,107 @@ services:
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
-      - CONNECTOR_ID=${CONNECTOR_MITRE_ID}
+      # Unique ID distinct from main MITRE connector to avoid registration collision
+      - CONNECTOR_ID=${CONNECTOR_MITRE_ATLAS_ID}
       - CONNECTOR_NAME=MITRE ATLAS
       - CONNECTOR_SCOPE=identity,attack-pattern,course-of-action,relationship,x-mitre-collection,x-mitre-matrix,x-mitre-tactic
       - CONNECTOR_RUN_AND_TERMINATE=false
       - CONNECTOR_LOG_LEVEL=error
       - MITRE_ATLAS_URL=https://raw.githubusercontent.com/mitre-atlas/atlas-navigator-data/main/dist/stix-atlas.json
       - MITRE_ATLAS_INTERVAL=2 # In days, must be strictly greater than 1
+    restart: always
+    networks:
+      - backend
+  connector-greynoise-feed:
+    image: opencti/connector-greynoise-feed:6.7.20
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - CONNECTOR_ID=${CONNECTOR_GREYNOISE_FEED_ID}
+      - CONNECTOR_NAME=GreyNoise Feed
+      - CONNECTOR_SCOPE=greynoise
+      - CONNECTOR_TYPE=EXTERNAL_IMPORT
+      - CONNECTOR_LOG_LEVEL=info
+      - GREYNOISE_API_KEY=${GREYNOISE_API_KEY}
+      - GREYNOISE_FEED_TYPE=gnql
+      # Provide GNQL query when using feed type 'gnql'
+      - GREYNOISE_GNQL_QUERY=${GREYNOISE_GNQL_QUERY}
+      - CONNECTOR_DURATION_PERIOD=P1D
+    restart: always
+    networks:
+      - backend
+  connector-shodan:
+    image: opencti/connector-shodan:6.7.20
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - CONNECTOR_ID=${CONNECTOR_SHODAN_ID}
+      - CONNECTOR_NAME=Shodan
+      - CONNECTOR_SCOPE=IPv4-Addr,Domain-Name
+      - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
+      - SHODAN_API_KEY=${SHODAN_API_KEY}
+      - CONNECTOR_LOG_LEVEL=info
+    restart: always
+    networks:
+      - backend
+  connector-virustotal:
+    image: opencti/connector-virustotal:6.7.20
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - CONNECTOR_ID=${CONNECTOR_VIRUSTOTAL_ID}
+      - CONNECTOR_NAME=VirusTotal
+      # Standardized to lowercase STIX types expected by the connector
+      - CONNECTOR_SCOPE=ipv4-addr,domain-name,file,url
+      - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
+      - VT_API_KEY=${VT_API_KEY}
+      - CONNECTOR_LOG_LEVEL=info
+    restart: always
+    networks:
+      - backend
+  connector-malpedia:
+    image: opencti/connector-malpedia:6.7.20
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - CONNECTOR_ID=${CONNECTOR_MALPEDIA_ID}
+      - CONNECTOR_NAME=Malpedia
+      - CONNECTOR_SCOPE=malpedia
+      - CONNECTOR_TYPE=EXTERNAL_IMPORT
+      - CONNECTOR_LOG_LEVEL=info
+      - CONNECTOR_DURATION_PERIOD=P1D
+    restart: always
+    networks:
+      - backend
+  connector-malwarebazaar:
+    image: opencti/connector-malwarebazaar:6.7.20
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - CONNECTOR_ID=${CONNECTOR_MALWAREBAZAAR_ID}
+      - CONNECTOR_NAME=MalwareBazaar
+      - CONNECTOR_SCOPE=malwarebazaar
+      - CONNECTOR_TYPE=EXTERNAL_IMPORT
+      - CONNECTOR_LOG_LEVEL=info
+      - MALWAREBAZAAR_BASE_URL=https://mb-api.abuse.ch/api/v1/
+      - MALWAREBAZAAR_DEFAULT_X_OPENCTI_SCORE=65
+      - MALWAREBAZAAR_INTERVAL=1
+    restart: always
+    networks:
+      - backend
+  connector-taxii2:
+    image: opencti/connector-taxii2:6.7.20
+    environment:
+      - OPENCTI_URL=http://opencti:8080
+      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+      - CONNECTOR_ID=${CONNECTOR_TAXII2_ID}
+      - CONNECTOR_NAME=TAXII2
+      - CONNECTOR_SCOPE=identity,malware,attack-pattern,indicator,report
+      - CONNECTOR_TYPE=EXTERNAL_IMPORT
+      - CONNECTOR_LOG_LEVEL=info
+      - TAXII2_DISCOVERY_URL=https://cti-taxii.mitre.org/taxii
+      - TAXII2_COLLECTIONS=all
+      - TAXII2_INTERVAL=2
     restart: always
     networks:
       - backend
