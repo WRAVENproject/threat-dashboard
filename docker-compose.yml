@@ -233,8 +233,10 @@ services:
       - CONNECTOR_NAME=MITRE ATT&CK
       - CONNECTOR_SCOPE=tool,report,malware,identity,campaign,intrusion-set,attack-pattern,course-of-action,x-mitre-data-source,x-mitre-data-component,x-mitre-matrix,x-mitre-tactic,x-mitre-collection
       - CONNECTOR_LOG_LEVEL=info
+      - CONNECTOR_CONFIDENCE_LEVEL=50 
+      - CONNECTOR_DURATION_PERIOD=P7D      
       - MITRE_ENTERPRISE_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json
-      # - MITRE_PRE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json  # Deprecated (merged into Enterprise); kept commented for reference
+      - MITRE_PRE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json
       - MITRE_MOBILE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json
       - MITRE_CAPEC_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/capec/2.1/stix-capec.json
       - MITRE_ICS_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/ics-attack/ics-attack.json
