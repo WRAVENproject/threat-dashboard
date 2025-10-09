@@ -81,7 +81,7 @@ services:
       - backend
 
   opencti:
-    image: opencti/platform:6.7.20
+    image: opencti/platform:6.8.3
     environment:
       - NODE_OPTIONS=--max-old-space-size=8096
       - APP__PORT=8080
@@ -123,7 +123,7 @@ services:
       - backend
 
   worker:
-    image: opencti/worker:6.7.20
+    image: opencti/worker:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -135,7 +135,7 @@ services:
     networks:
       - backend
   connector-export-file-stix:
-    image: opencti/connector-export-file-stix:6.7.20
+    image: opencti/connector-export-file-stix:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -148,7 +148,7 @@ services:
     networks:
       - backend
   connector-export-file-csv:
-    image: opencti/connector-export-file-csv:6.7.20
+    image: opencti/connector-export-file-csv:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -161,7 +161,7 @@ services:
     networks:
       - backend
   connector-export-file-txt:
-    image: opencti/connector-export-file-txt:6.7.20
+    image: opencti/connector-export-file-txt:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -174,7 +174,7 @@ services:
     networks:
       - backend
   connector-import-file-stix:
-    image: opencti/connector-import-file-stix:6.7.20
+    image: opencti/connector-import-file-stix:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -189,7 +189,7 @@ services:
     networks:
       - backend
   connector-import-document:
-    image: opencti/connector-import-document:6.7.20
+    image: opencti/connector-import-document:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -207,7 +207,7 @@ services:
     networks:
       - backend
   connector-analysis:
-    image: opencti/connector-import-document:6.7.20
+    image: opencti/connector-import-document:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -224,7 +224,7 @@ services:
     networks:
       - backend
   connector-mitre:
-    image: opencti/connector-mitre:6.7.20
+    image: opencti/connector-mitre:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -244,7 +244,7 @@ services:
     networks:
       - backend
   connector-alienvault:
-    image: opencti/connector-alienvault:6.7.20
+    image: opencti/connector-alienvault:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -266,7 +266,7 @@ services:
     networks:
       - backend
   connector-cve:
-    image: opencti/connector-cve:6.7.20
+    image: opencti/connector-cve:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -286,7 +286,7 @@ services:
     networks:
       - backend    
   connector-cpe:
-    image: opencti/connector-cpe:6.7.20
+    image: opencti/connector-cpe:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -302,7 +302,7 @@ services:
     networks:
       - backend
   connector-threatfox:
-    image: opencti/connector-threatfox:6.7.20
+    image: opencti/connector-threatfox:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -321,7 +321,7 @@ services:
     networks:
       - backend
   connector-urlhaus:
-    image: opencti/connector-urlhaus:6.7.20
+    image: opencti/connector-urlhaus:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -338,7 +338,7 @@ services:
     networks:
       - backend
   connector-cisa:
-    image: opencti/connector-cisa-known-exploited-vulnerabilities:6.7.20
+    image: opencti/connector-cisa-known-exploited-vulnerabilities:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -355,7 +355,7 @@ services:
     networks:
       - backend
   connector-opencti:
-    image: opencti/connector-opencti:6.7.20
+    image: opencti/connector-opencti:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -374,7 +374,7 @@ services:
     networks:
       - backend
   connector-mitre-atlas:
-    image: opencti/connector-mitre-atlas:6.7.20
+    image: opencti/connector-mitre-atlas:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -390,7 +390,7 @@ services:
     networks:
       - backend
   connector-greynoise-feed:
-    image: opencti/connector-greynoise-feed:6.7.20
+    image: opencti/connector-greynoise-feed:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -408,7 +408,7 @@ services:
     networks:
       - backend
   connector-shodan:
-    image: opencti/connector-shodan:6.7.20
+    image: opencti/connector-shodan:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -422,7 +422,7 @@ services:
     networks:
       - backend
   connector-virustotal:
-    image: opencti/connector-virustotal:6.7.20
+    image: opencti/connector-virustotal:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -437,7 +437,7 @@ services:
     networks:
       - backend
   connector-malpedia:
-    image: opencti/connector-malpedia:6.7.20
+    image: opencti/connector-malpedia:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -451,7 +451,7 @@ services:
     networks:
       - backend
   connector-malwarebazaar:
-    image: opencti/connector-malwarebazaar:6.7.20
+    image: opencti/connector-malwarebazaar:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -467,7 +467,7 @@ services:
     networks:
       - backend
   connector-taxii2:
-    image: opencti/connector-taxii2:6.7.20
+    image: opencti/connector-taxii2:6.8.3
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
