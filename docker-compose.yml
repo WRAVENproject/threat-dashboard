@@ -42,7 +42,7 @@ services:
       - backend
 
   minio:
-    image: minio/minio:RELEASE.2025-10-15T17-29-55Z
+    image: minio/minio:RELEASE.2024-05-28T17-19-04Z
     volumes:
       - s3data:/data
     ports:
