@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   redis:
-    image: redis:7.4.3
+    image: redis:8.2.3
     restart: always
     volumes:
       - redisdata:/data
@@ -15,7 +15,7 @@ services:
       - backend
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.0
     volumes:
       - esdata:/usr/share/elasticsearch/data
     environment:
@@ -42,7 +42,7 @@ services:
       - backend
 
   minio:
-    image: minio/minio:RELEASE.2024-05-28T17-19-04Z
+    image: minio/minio:RELEASE.2025-10-15T17-29-55Z
     volumes:
       - s3data:/data
     ports:
