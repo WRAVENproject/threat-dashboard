@@ -91,7 +91,7 @@ services:
       - APP__ADMIN__TOKEN=${OPENCTI_ADMIN_TOKEN}
       # Mandatory since 7.260224.0. Generate with: openssl rand -base64 32
       # BACK THIS UP - losing it means losing all credentials encrypted at rest.
-      - APP__ENCRYPTION_KEY=${OPENCTI_ENCRYPTION_KEY}
+      - APP__ENCRYPTION_KEY=${APP_ENCRYPTION_KEY}
       - APP__APP_LOGS__LOGS_LEVEL=error
       - REDIS__HOSTNAME=redis
       - REDIS__PORT=6379
