@@ -1,8 +1,7 @@
-version: "3.3"
 
 services:
   redis:
-    image: redis:latest
+    image: redis:8.8.0
     restart: always
     volumes:
       - redisdata:/data
@@ -46,7 +45,8 @@ services:
     volumes:
       - s3data:/data
     ports:
-      - "9000:9000"
+      # Bound to loopback: OpenCTI reaches MinIO over the 'backend' network.
+      - "127.0.0.1:9000:9000"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
@@ -81,7 +81,7 @@ services:
       - backend
 
   opencti:
-    image: opencti/platform:7.260401.0
+    image: opencti/platform:7.260811.0
     environment:
       - NODE_OPTIONS=--max-old-space-size=8096
       - APP__PORT=8080
@@ -89,6 +89,9 @@ services:
       - APP__ADMIN__EMAIL=${OPENCTI_ADMIN_EMAIL}
       - APP__ADMIN__PASSWORD=${OPENCTI_ADMIN_PASSWORD}
       - APP__ADMIN__TOKEN=${OPENCTI_ADMIN_TOKEN}
+      # Mandatory since 7.260224.0. Generate with: openssl rand -base64 32
+      # BACK THIS UP - losing it means losing all credentials encrypted at rest.
+      - APP__ENCRYPTION_KEY=${OPENCTI_ENCRYPTION_KEY}
       - APP__APP_LOGS__LOGS_LEVEL=error
       - REDIS__HOSTNAME=redis
       - REDIS__PORT=6379
@@ -112,6 +115,15 @@ services:
       - APP__PUBLIC_DASHBOARD_AUTHORIZED_DOMAINS=*
     ports:
       - "0.0.0.0:8081:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: always
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://opencti:8080/health?health_access_key=${OPENCTI_HEALTHCHECK_ACCESS_KEY}"]
@@ -123,7 +135,7 @@ services:
       - backend
 
   worker:
-    image: opencti/worker:7.260401.0
+    image: opencti/worker:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -131,11 +143,14 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-export-file-stix:
-    image: opencti/connector-export-file-stix:7.260401.0
+    image: opencti/connector-export-file-stix:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -144,11 +159,14 @@ services:
       - CONNECTOR_NAME=ExportFileStix2
       - CONNECTOR_SCOPE=application/json
       - CONNECTOR_LOG_LEVEL=info
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-export-file-csv:
-    image: opencti/connector-export-file-csv:7.260401.0
+    image: opencti/connector-export-file-csv:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -157,11 +175,14 @@ services:
       - CONNECTOR_NAME=ExportFileCsv
       - CONNECTOR_SCOPE=text/csv
       - CONNECTOR_LOG_LEVEL=info
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-export-file-txt:
-    image: opencti/connector-export-file-txt:7.260401.0
+    image: opencti/connector-export-file-txt:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -170,11 +191,14 @@ services:
       - CONNECTOR_NAME=ExportFileTxt
       - CONNECTOR_SCOPE=text/plain
       - CONNECTOR_LOG_LEVEL=info
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-import-file-stix:
-    image: opencti/connector-import-file-stix:7.260401.0
+    image: opencti/connector-import-file-stix:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -185,11 +209,14 @@ services:
       - CONNECTOR_SCOPE=application/json,text/xml
       - CONNECTOR_AUTO=true # Enable/disable auto-import of file
       - CONNECTOR_LOG_LEVEL=info
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-import-document:
-    image: opencti/connector-import-document:7.260401.0
+    image: opencti/connector-import-document:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -203,11 +230,14 @@ services:
       - CONNECTOR_CONFIDENCE_LEVEL=15 # From 0 (Unknown) to 100 (Fully trusted)
       - CONNECTOR_LOG_LEVEL=info
       - IMPORT_DOCUMENT_CREATE_INDICATOR=true
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-analysis:
-    image: opencti/connector-import-document:7.260401.0
+    image: opencti/connector-import-document:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -220,11 +250,14 @@ services:
       - CONNECTOR_ONLY_CONTEXTUAL=false # Only extract data related to an entity (a report, a threat actor, etc.)
       - CONNECTOR_CONFIDENCE_LEVEL=15 # From 0 (Unknown) to 100 (Fully trusted)
       - CONNECTOR_LOG_LEVEL=info
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-mitre:
-    image: opencti/connector-mitre:7.260401.0
+    image: opencti/connector-mitre:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -233,18 +266,19 @@ services:
       - CONNECTOR_NAME=MITRE ATT&CK
       - CONNECTOR_SCOPE=tool,report,malware,identity,campaign,intrusion-set,attack-pattern,course-of-action,x-mitre-data-source,x-mitre-data-component,x-mitre-matrix,x-mitre-tactic,x-mitre-collection
       - CONNECTOR_LOG_LEVEL=info
-      - CONNECTOR_CONFIDENCE_LEVEL=50 
       - CONNECTOR_DURATION_PERIOD=P7D      
       - MITRE_ENTERPRISE_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json
-      - MITRE_PRE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json
       - MITRE_MOBILE_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json
       - MITRE_CAPEC_FILE_URL=https://raw.githubusercontent.com/mitre/cti/master/capec/2.1/stix-capec.json
       - MITRE_ICS_ATTACK_FILE_URL=https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/ics-attack/ics-attack.json
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-alienvault:
-    image: opencti/connector-alienvault:7.260401.0
+    image: opencti/connector-alienvault:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -262,11 +296,14 @@ services:
       - ALIENVAULT_GUESS_MALWARE=True
       - ALIENVAULT_GUESS_CVE=True
       - ALIENVAULT_EXCLUDED_PULSE_INDICATOR_TYPES=FileHash-MD5,FileHash-SHA1
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-cve:
-    image: opencti/connector-cve:7.260401.0
+    image: opencti/connector-cve:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -282,11 +319,14 @@ services:
       - CVE_MAINTAIN_DATA=True
       - CVE_PULL_HISTORY=True
       - CVE_HISTORY_START_YEAR=2019
-    restart: always  
+    depends_on:
+      opencti:
+        condition: service_healthy
+    restart: always
     networks:
       - backend    
   connector-cpe:
-    image: opencti/connector-cpe:7.260401.0
+    image: opencti/connector-cpe:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -298,11 +338,14 @@ services:
       - CPE_BASE_URL=https://services.nvd.nist.gov/rest/json/cpes/2.0
       - NIST_API_KEY=${NIST_API_KEY}
       - CPE_INTERVAL=6
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-threatfox:
-    image: opencti/connector-threatfox:7.260401.0
+    image: opencti/connector-threatfox:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -317,11 +360,14 @@ services:
       - THREATFOX_DEFAULT_X_OPENCTI_SCORE=70
       - THREATFOX_INTERVAL=1 # every day
       - THREATFOX_IOC_TO_IMPORT=all_types
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-urlhaus:
-    image: opencti/connector-urlhaus:7.260401.0
+    image: opencti/connector-urlhaus:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -334,11 +380,14 @@ services:
       - URLHAUS_IMPORT_OFFLINE=true
       - URLHAUS_THREATS_FROM_LABELS=true
       - URLHAUS_INTERVAL=2 # In days, must be strictly greater than 1
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-cisa:
-    image: opencti/connector-cisa-known-exploited-vulnerabilities:7.260401.0
+    image: opencti/connector-cisa-known-exploited-vulnerabilities:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -351,30 +400,34 @@ services:
       - CISA_CATALOG_URL=https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
       - CISA_CREATE_INFRASTRUCTURES=true
       - CISA_TLP=TLP:CLEAR
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-opencti:
-    image: opencti/connector-opencti:7.260401.0
+    image: opencti/connector-opencti:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
       - CONNECTOR_ID=${CONNECTOR_OPENCTIDATA_ID}
       - CONNECTOR_NAME=OpenCTI Datasets
       - CONNECTOR_SCOPE=marking-definition,identity,location
-      - CONNECTOR_UPDATE_EXISTING_DATA=true
-      - CONNECTOR_RUN_AND_TERMINATE=false
       - CONNECTOR_LOG_LEVEL=error
       - CONFIG_SECTORS_FILE_URL=https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/sectors.json
       - CONFIG_GEOGRAPHY_FILE_URL=https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/geography.json
       - CONFIG_COMPANIES_FILE_URL=https://raw.githubusercontent.com/OpenCTI-Platform/datasets/master/data/companies.json
       - CONFIG_REMOVE_CREATOR=false
       - CONFIG_INTERVAL=1 # In days
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-mitre-atlas:
-    image: opencti/connector-mitre-atlas:7.260401.0
+    image: opencti/connector-mitre-atlas:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -382,15 +435,17 @@ services:
       - CONNECTOR_ID=${CONNECTOR_MITRE_ATLAS_ID}
       - CONNECTOR_NAME=MITRE ATLAS
       - CONNECTOR_SCOPE=identity,attack-pattern,course-of-action,relationship,x-mitre-collection,x-mitre-matrix,x-mitre-tactic
-      - CONNECTOR_RUN_AND_TERMINATE=false
       - CONNECTOR_LOG_LEVEL=error
       - MITRE_ATLAS_URL=https://raw.githubusercontent.com/mitre-atlas/atlas-navigator-data/main/dist/stix-atlas.json
-      - MITRE_ATLAS_INTERVAL=2 # In days, must be strictly greater than 1
+      - CONNECTOR_DURATION_PERIOD=P2D
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-greynoise-feed:
-    image: opencti/connector-greynoise-feed:7.260401.0
+    image: opencti/connector-greynoise-feed:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -399,16 +454,21 @@ services:
       - CONNECTOR_SCOPE=greynoise
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_LOG_LEVEL=info
-      - GREYNOISE_API_KEY=${GREYNOISE_API_KEY}
-      - GREYNOISE_FEED_TYPE=gnql
-      # Provide GNQL query when using feed type 'gnql'
-      - GREYNOISE_GNQL_QUERY=${GREYNOISE_GNQL_QUERY}
+      - GREYNOISE_FEED_API_KEY=${GREYNOISE_API_KEY}
+      # NOTE: the 'gnql' feed type and GREYNOISE_GNQL_QUERY were removed upstream.
+      # Allowed: benign | malicious | suspicious | benign+malicious |
+      #          malicious+suspicious | benign+suspicious+malicious | all
+      - GREYNOISE_FEED_FEED_TYPE=malicious
+      - GREYNOISE_FEED_LIMIT=10000
       - CONNECTOR_DURATION_PERIOD=P1D
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-shodan:
-    image: opencti/connector-shodan:7.260401.0
+    image: opencti/connector-shodan:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -416,13 +476,16 @@ services:
       - CONNECTOR_NAME=Shodan
       - CONNECTOR_SCOPE=IPv4-Addr,Domain-Name
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
-      - SHODAN_API_KEY=${SHODAN_API_KEY}
+      - SHODAN_TOKEN=${SHODAN_API_KEY}
       - CONNECTOR_LOG_LEVEL=info
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-virustotal:
-    image: opencti/connector-virustotal:7.260401.0
+    image: opencti/connector-virustotal:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -431,13 +494,16 @@ services:
       # Standardized to lowercase STIX types expected by the connector
       - CONNECTOR_SCOPE=ipv4-addr,domain-name,file,url
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
-      - VT_API_KEY=${VT_API_KEY}
+      - VIRUSTOTAL_TOKEN=${VT_API_KEY}
       - CONNECTOR_LOG_LEVEL=info
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-malpedia:
-    image: opencti/connector-malpedia:7.260401.0
+    image: opencti/connector-malpedia:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -447,11 +513,14 @@ services:
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_LOG_LEVEL=info
       - CONNECTOR_DURATION_PERIOD=P1D
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
   connector-malwarebazaar:
-    image: opencti/connector-malwarebazaar:7.260401.0
+    image: opencti/connector-malwarebazaar:7.260811.0
     environment:
       - OPENCTI_URL=http://opencti:8080
       - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
@@ -460,28 +529,41 @@ services:
       - CONNECTOR_SCOPE=malwarebazaar
       - CONNECTOR_TYPE=EXTERNAL_IMPORT
       - CONNECTOR_LOG_LEVEL=info
-      - MALWAREBAZAAR_BASE_URL=https://mb-api.abuse.ch/api/v1/
-      - MALWAREBAZAAR_DEFAULT_X_OPENCTI_SCORE=65
-      - MALWAREBAZAAR_INTERVAL=1
+      # API key is now REQUIRED by abuse.ch - connector will not start without it.
+      - MALWAREBAZAAR_API_KEY=${MALWAREBAZAAR_API_KEY}
+      - MALWAREBAZAAR_API_BASE_URL=https://mb-api.abuse.ch/api/v1/
+      - MALWAREBAZAAR_X_OPENCTI_SCORE=65
+      - CONNECTOR_DURATION_PERIOD=PT50M
+    depends_on:
+      opencti:
+        condition: service_healthy
     restart: always
     networks:
       - backend
-  connector-taxii2:
-    image: opencti/connector-taxii2:7.260401.0
-    environment:
-      - OPENCTI_URL=http://opencti:8080
-      - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
-      - CONNECTOR_ID=${CONNECTOR_TAXII2_ID}
-      - CONNECTOR_NAME=TAXII2
-      - CONNECTOR_SCOPE=identity,malware,attack-pattern,indicator,report
-      - CONNECTOR_TYPE=EXTERNAL_IMPORT
-      - CONNECTOR_LOG_LEVEL=info
-      - TAXII2_DISCOVERY_URL=https://cti-taxii.mitre.org/taxii
-      - TAXII2_COLLECTIONS=all
-      - TAXII2_INTERVAL=2
-    restart: always
-    networks:
-      - backend
+  # DISABLED: this pointed at https://cti-taxii.mitre.org/taxii, MITRE's TAXII 2.0
+  # server, which was retired in December 2022 (DNS no longer resolves). The
+  # replacement is https://attack-taxii.mitre.org/api/v21/ (TAXII 2.1), but that
+  # serves MITRE ATT&CK - which connector-mitre above already ingests. Re-enabling
+  # this against attack-taxii would duplicate that data.
+  #
+  # Point TAXII2_DISCOVERY_URL at a *non-MITRE* TAXII feed to make this useful again.
+  # connector-taxii2:
+  #   image: opencti/connector-taxii2:7.260811.0
+  #   environment:
+  #     - OPENCTI_URL=http://opencti:8080
+  #     - OPENCTI_TOKEN=${OPENCTI_ADMIN_TOKEN}
+  #     - CONNECTOR_ID=${CONNECTOR_TAXII2_ID}
+  #     - CONNECTOR_NAME=TAXII2
+  #     - CONNECTOR_SCOPE=identity,malware,attack-pattern,indicator,report
+  #     - CONNECTOR_TYPE=EXTERNAL_IMPORT
+  #     - CONNECTOR_LOG_LEVEL=info
+  #     - CONNECTOR_DURATION_PERIOD=PT60M
+  #     - TAXII2_DISCOVERY_URL=<a real TAXII 2.1 discovery endpoint>
+  #     - TAXII2_V21=true
+  #     - TAXII2_COLLECTIONS=*.*
+  #   restart: always
+  #   networks:
+  #     - backend
 
 volumes:
   esdata: {}

@@ -2,3 +2,4 @@
 .env
 docker-compose.dev.yml
 favicoin.png
+.DS_Store
